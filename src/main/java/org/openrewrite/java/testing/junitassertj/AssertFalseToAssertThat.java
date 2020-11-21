@@ -16,7 +16,10 @@
 package org.openrewrite.java.testing.junitassertj;
 
 import org.openrewrite.AutoConfigure;
-import org.openrewrite.java.*;
+import org.openrewrite.java.AddImport;
+import org.openrewrite.java.AutoFormat;
+import org.openrewrite.java.JavaIsoRefactorVisitor;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.Flag;
 import org.openrewrite.java.tree.J;
@@ -32,14 +35,14 @@ import static org.openrewrite.Formatting.format;
 import static org.openrewrite.Tree.randomId;
 
 /**
- * This is a refactoring visitor that will convert JUnit-style assertTrue() to assertJ's assertThat().isTrue().
+ * This is a refactoring visitor that will convert JUnit-style assertFalse() to assertJ's assertThat().isFalse().
  *
- * This visitor only supports the migration of the following JUnit 5 assertTrue() methods:
+ * This visitor only supports the migration of the following JUnit 5 assertFalse() methods:
  *
  * <PRE>
- *     assertTrue(boolean condition) -> assertThat(condition).isTrue()
- *     assertTrue(boolean condition, String message) -> assertThat(condition).withFailMessage(message).isTrue();
- *     assertTrue(boolean condition, Supplier<String> messageSupplier) -> assertThat(condition).withFailMessage(messageSupplier).isTrue();
+ *     assertFalse(boolean condition) -> assertThat(condition).isFalse()
+ *     assertFalse(boolean condition, String message) -> assertThat(condition).withFailMessage(message).isFalse();
+ *     assertFalse(boolean condition, Supplier<String> messageSupplier) -> assertThat(condition).withFailMessage(messageSupplier).isFalse();
  * </PRE>
  *
  * Note: There are three additional method signatures in JUnit that use a BooleanSupplier for the condition. Attempts
@@ -48,10 +51,10 @@ import static org.openrewrite.Tree.randomId;
  *       unit or in a shared testing utilities library.
  */
 @AutoConfigure
-public class AssertTrueToAssertThat extends JavaIsoRefactorVisitor {
+public class AssertFalseToAssertThat extends JavaIsoRefactorVisitor {
 
     private static final String JUNIT_QUALIFIED_ASSERTIONS_CLASS = "org.junit.jupiter.api.Assertions";
-    private static final String JUNIT_ASSERT_TRUE_METHOD = "assertTrue";
+    private static final String JUNIT_ASSERT_FALSE_METHOD = "assertFalse";
 
     private static final String ASSERTJ_QUALIFIED_ASSERTIONS_CLASS = "org.assertj.core.api.Assertions";
     private static final String ASSERTJ_QUALIFIED_BOOLEAN_ASSERT_CLASS = "org.assertj.core.api.AbstractBooleanAssert";
@@ -60,8 +63,8 @@ public class AssertTrueToAssertThat extends JavaIsoRefactorVisitor {
     /**
      * This matcher uses a pointcut expression to find the matching junit methods that will be migrated by this visitor
      */
-    private static final MethodMatcher assertTrueMatcher = new MethodMatcher(
-            JUNIT_QUALIFIED_ASSERTIONS_CLASS + " " + JUNIT_ASSERT_TRUE_METHOD + "(boolean, ..)"
+    private static final MethodMatcher assertFalseMatcher = new MethodMatcher(
+            JUNIT_QUALIFIED_ASSERTIONS_CLASS + " " + JUNIT_ASSERT_FALSE_METHOD + "(boolean, ..)"
     );
     private static final JavaType.Method assertThatMethodDeclaration;
 
@@ -89,10 +92,9 @@ public class AssertTrueToAssertThat extends JavaIsoRefactorVisitor {
     @Override
     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method) {
         J.MethodInvocation original = super.visitMethodInvocation(method);
-        if (!assertTrueMatcher.matches(method)) {
+        if (!assertFalseMatcher.matches(method)) {
             return original;
         }
-
 
         List<Expression> originalArgs = original.getArgs().getArgs();
         Expression condition = originalArgs.get(0);
@@ -114,8 +116,8 @@ public class AssertTrueToAssertThat extends JavaIsoRefactorVisitor {
                 EMPTY
         );
         if (message != null) {
-            //If the assertTrue is the two-argument variant, we need to maintain the message via a chained method
-            //call to "withFailMessage". There message may be a String or Supplier<String> and withFailMessage has
+            //If the assertFalse is the two-argument variant, we need to maintain the message via a chained method
+            //call to "withFailMessage". The message may be a String or Supplier<String> and withFailMessage has
             //overloads for both types.
             assertSelect = new J.MethodInvocation(
                     randomId(),
@@ -132,14 +134,14 @@ public class AssertTrueToAssertThat extends JavaIsoRefactorVisitor {
             );
         }
 
-        //The method that will always be returned is the "isTrue()" method using the assertSelect as the select.
-        //One argument form : assertThat(<CONDITION>).isTrue();
-        //Two argument form : assertThat(<CONDITION>).withFailMessage(<MESSAGE>).isTrue();
+        //The method that will always be returned is the "isFalse()" method using the assertSelect as the select.
+        //One argument form : assertThat(<CONDITION>).isFalse();
+        //Two argument form : assertThat(<CONDITION>).withFailMessage(<MESSAGE>).isFalse();
         J.MethodInvocation replacement = new J.MethodInvocation(
                 randomId(),
                 assertSelect,
                 null,
-                J.Ident.build(randomId(), "isTrue", JavaType.Primitive.Boolean, EMPTY),
+                J.Ident.build(randomId(), "isFalse", JavaType.Primitive.Boolean, EMPTY),
                 new J.MethodInvocation.Arguments(
                         randomId(),
                         Collections.emptyList(),

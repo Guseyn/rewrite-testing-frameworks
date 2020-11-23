@@ -33,11 +33,11 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
     fun singleStaticMethodNoMessage() = assertRefactored(
             before = """
                 import org.junit.Test;
-                
+
                 import static org.junit.jupiter.api.Assertions.assertFalse;
-                
+
                 public class A {
-                
+ 
                     @Test
                     public void test() {
                         assertFalse(notification() != null && notification() > 0);
@@ -49,11 +49,11 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
             """,
             after = """
                 import org.junit.Test;
-                
+
                 import static org.assertj.core.api.Assertions.assertThat;
-                
+
                 public class A {
-                
+
                     @Test
                     public void test() {
                         assertThat(notification() != null && notification() > 0).isFalse();
@@ -69,11 +69,11 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
     fun singleStaticMethodWithMessageString() = assertRefactored(
             before = """
                 import org.junit.Test;
-                
+
                 import static org.junit.jupiter.api.Assertions.*;
-                
+
                 public class A {
-                
+
                     @Test
                     public void test() {
                         assertFalse(notification() != null && notification() > 0, "The notification should be negative");
@@ -85,11 +85,11 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
             """,
             after = """
                 import org.junit.Test;
-                
+
                 import static org.assertj.core.api.Assertions.assertThat;
-                
+
                 public class A {
-                
+
                     @Test
                     public void test() {
                         assertThat(notification() != null && notification() > 0).withFailMessage("The notification should be negative").isFalse();
@@ -105,11 +105,11 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
     fun singleStaticMethodWithMessageSupplier() = assertRefactored(
             before = """
                 import org.junit.Test;
-                
+
                 import static org.junit.jupiter.api.Assertions.*;
-                
+
                 public class A {
-                
+
                     @Test
                     public void test() {
                         assertFalse(notification() != null && notification() > 0, () -> "The notification should be negative");
@@ -121,11 +121,11 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
             """,
             after = """
                 import org.junit.Test;
-                
+
                 import static org.assertj.core.api.Assertions.assertThat;
-                
+
                 public class A {
-                
+
                     @Test
                     public void test() {
                         assertThat(notification() != null && notification() > 0).withFailMessage(() -> "The notification should be negative").isFalse();
@@ -143,7 +143,7 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
                 import org.junit.Test;
  
                 public class A {
-                
+
                     @Test
                     public void test() {
                         org.junit.jupiter.api.Assertions.assertFalse(notification() != null && notification() > 0);
@@ -157,9 +157,9 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
             """,
             after = """
                 import org.junit.Test;
-                
+
                 import static org.assertj.core.api.Assertions.assertThat;
-                
+
                 public class A {
                 
                     @Test
@@ -179,12 +179,12 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
     fun mixedReferences() = assertRefactored(
             before = """
                 import org.junit.Test;
-                
+
                 import static org.assertj.core.api.Assertions.*;
                 import static org.junit.jupiter.api.Assertions.assertFalse;
-                
+
                 public class A {
-                
+
                     @Test
                     public void test() {
                         assertFalse(notification() != null && notification() > 0);
@@ -198,11 +198,11 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
             """,
             after = """
                 import org.junit.Test;
-                
+
                 import static org.assertj.core.api.Assertions.*;
-                
+
                 public class A {
-                
+
                     @Test
                     public void test() {
                         assertThat(notification() != null && notification() > 0).isFalse();
@@ -220,11 +220,11 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
     fun leaveBooleanSuppliersAlone() = assertRefactored(
             before = """
                 import org.junit.Test;
-                
+
                 import static org.junit.jupiter.api.Assertions.assertFalse;
-                
+
                 public class A {
-                
+
                     @Test
                     public void test() {
                         assertFalse(notification() != null && notification() > 0);
@@ -241,12 +241,12 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
             """,
             after = """
                 import org.junit.Test;
-                
+
                 import static org.assertj.core.api.Assertions.assertThat;
                 import static org.junit.jupiter.api.Assertions.assertFalse;
-                
+
                 public class A {
-                
+
                     @Test
                     public void test() {
                         assertThat(notification() != null && notification() > 0).isFalse();
@@ -262,5 +262,4 @@ class AssertFalseToAssertThatTest: RefactorVisitorTestForParser<J.CompilationUni
                 }
             """
     )
-
 }

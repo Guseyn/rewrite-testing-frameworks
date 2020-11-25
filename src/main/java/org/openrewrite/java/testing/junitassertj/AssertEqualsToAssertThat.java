@@ -21,16 +21,7 @@ import org.openrewrite.java.JavaIsoRefactorVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.*;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.openrewrite.Formatting.EMPTY;
-import static org.openrewrite.Formatting.format;
-import static org.openrewrite.Tree.randomId;
 
 /**
  * This is a refactoring visitor that will convert JUnit-style assertEquals() to assertJ's assertThat().isEqualTo().
@@ -120,8 +111,8 @@ public class AssertEqualsToAssertThat extends JavaIsoRefactorVisitor {
 
     private J.MethodInvocation assertSimple(Expression actual, Expression expected) {
 
-        List<J.MethodInvocation> statements = treeBuilder.buildSnippet(getCursor().getParent(),
-                String.format("Assertions.assertThat(%s).isEqualTo(%s);", actual.printTrimmed(), expected.printTrimmed()),
+        List<J.MethodInvocation> statements = treeBuilder.buildSnippet(getCursor(),
+                String.format("assertThat(%s).isEqualTo(%s);", actual.printTrimmed(), expected.printTrimmed()),
                 ASSERTJ_ASSERT_THAT_STATIC_IMPORT
         );
         return statements.get(0);
